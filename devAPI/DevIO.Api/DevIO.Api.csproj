@@ -18,5 +18,9 @@
     <ProjectReference Include="..\..\..\API - FInalizada\API\src\DevIO.Business\DevIO.Business.csproj" />
     <ProjectReference Include="..\..\..\API - FInalizada\API\src\DevIO.Data\DevIO.Data.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="wwwroot\imagens\" />
+  </ItemGroup>
   
 </Project>

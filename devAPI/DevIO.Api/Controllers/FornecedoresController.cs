@@ -16,13 +16,16 @@ namespace DevIO.Api.Controllers
         private readonly IFornecedorRepository _repository;
         private readonly IMapper _mapper;
         private readonly IFornecedorService _fornecedorService;
+        private readonly IEnderecoRepository _enderecoRepository;
         public FornecedoresController(
             IFornecedorRepository repository, 
             IMapper mapper, 
             IFornecedorService service,
+            IEnderecoRepository enderecoRepository,
             INotificador notificador) : base(notificador)
         {
             _repository = repository;
+            _enderecoRepository = enderecoRepository;
             _mapper = mapper;
             _fornecedorService = service;
         }
@@ -44,6 +47,14 @@ namespace DevIO.Api.Controllers
                 return NotFound();
 
             return Ok(fornecedor);
+        }
+
+        [HttpGet("obter-endereco/{id:guid}")]
+        public async Task<ActionResult<EnderecoViewModel>> ObterEnderecoFornecedor(Guid id)
+        {
+            var enderecoViewModel = _mapper.Map<EnderecoViewModel>(await _enderecoRepository.ObterPorId(id));
+
+            return Ok(enderecoViewModel);
         }
 
         [HttpPost]
@@ -71,6 +82,21 @@ namespace DevIO.Api.Controllers
             await _fornecedorService.Atualizar(fornecedor);
 
             return CustomResponse(fornecedorViewModel);
+        }
+
+        [HttpPut("{id:guid}")]
+        public async Task<IActionResult> AtualizarEndereco(Guid id, [FromBody] EnderecoViewModel enderecoViewModel)
+        {
+            if (id != enderecoViewModel.Id)
+                return BadRequest();
+
+            if (!ModelState.IsValid)
+                return CustomResponse(ModelState);
+
+            var endereco = _mapper.Map<Endereco>(enderecoViewModel);
+            await _fornecedorService.AtualizarEndereco(endereco);
+
+            return CustomResponse(enderecoViewModel);
         }
 
         [HttpDelete("{id:guid}")]

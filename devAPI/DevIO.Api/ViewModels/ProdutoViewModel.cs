@@ -8,6 +8,7 @@ namespace DevIO.Api.ViewModels
 {
     public class ProdutoViewModel
     {
+        public Guid Id { get; set; }
         public Guid FornecedorId { get; set; }
 
         [Required(ErrorMessage = "O campo {0} é obrigatório!")]
