@@ -2,6 +2,7 @@
 using DevIO.Api.ViewModels;
 using DevIO.Business.Intefaces;
 using DevIO.Business.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -66,6 +67,26 @@ namespace DevIO.Api.Controllers
             return CustomResponse(produtoViewModel);
         }
 
+       [HttpPost("imagem")]
+        public async Task<ActionResult<ProdutoImagemViewModel>> AdicionarComImagemGrande([FromBody] ProdutoImagemViewModel produtoViewModel)
+        {
+            if (!ModelState.IsValid) return CustomResponse(ModelState);
+
+            var imgPrefixo = Guid.NewGuid() + "_";
+
+            if (!await UploadArquivoGrande(produtoViewModel.ImagemUpload, imgPrefixo))
+            {
+                return CustomResponse(produtoViewModel);
+            }
+
+            produtoViewModel.Imagem = imgPrefixo + produtoViewModel.ImagemUpload.FileName;
+
+            await _produtoService.Adicionar(_mapper.Map<Produto>(produtoViewModel));
+
+            return CustomResponse(produtoViewModel);
+        }
+
+
         [HttpDelete("{id:guid}")]
         public async Task<ActionResult<ProdutoViewModel>> Excluir(Guid id)
         {
@@ -76,6 +97,31 @@ namespace DevIO.Api.Controllers
             await _produtoService.Remover(id);
 
             return CustomResponse(produto);
+        }
+
+        private async Task<bool> UploadArquivoGrande(IFormFile arquivo, string imgPrefixo)
+        {
+            if (arquivo == null || arquivo.Length <= 0)
+            {
+                NotificarErro("Forneça uma imagem para esse produto.");
+                return false;
+            }
+
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/app/demo-webapi/src/app/assets", imgPrefixo + arquivo.FileName);
+
+            if (System.IO.File.Exists(filePath))
+            {
+                NotificarErro("Já existe um arquivo com esse nome.");
+                return false;
+            }
+
+            using(var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await arquivo.CopyToAsync(stream);
+            }
+
+            return true;
+
         }
 
         private bool UploadArquivo(string arquivo, string imgNome)
@@ -89,7 +135,7 @@ namespace DevIO.Api.Controllers
             var imagemDataByteArray = Convert.FromBase64String(arquivo);
 
 
-            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/imagens", imgNome);
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/app/demo-webapi/src/app/assets", imgNome);
 
             if (System.IO.File.Exists(filePath))
             {

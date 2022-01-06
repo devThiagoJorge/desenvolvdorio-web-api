@@ -3,6 +3,7 @@ using DevIO.Api.ViewModels;
 using DevIO.Business.Intefaces;
 using DevIO.Business.Models;
 using DevIO.Data.Repository;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -11,6 +12,7 @@ using System.Threading.Tasks;
 namespace DevIO.Api.Controllers
 {
     [Route("api/fornecedores")]
+    [Authorize]
     public class FornecedoresController : MainController
     {
         private readonly IFornecedorRepository _repository;
@@ -30,6 +32,7 @@ namespace DevIO.Api.Controllers
             _fornecedorService = service;
         }
 
+        [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<FornecedorViewModel>>> ObterTodos()
         {
