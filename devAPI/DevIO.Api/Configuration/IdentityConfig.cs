@@ -21,6 +21,7 @@ namespace DevIO.Api.Configuration
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
 
+
             return services;
         }
     }

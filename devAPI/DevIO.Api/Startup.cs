@@ -47,6 +47,7 @@ namespace DevIO.Api
             });
 
             services.AddIdentityConfiguration(Configuration);
+            services.AddJWTConfiguration(Configuration);
 
             services.ResolveDepencencies();
         }
