@@ -20,14 +20,19 @@ namespace DevIO.Api.Controllers
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly AppSettings _appSettings;
+        private readonly ILogger _logger;
+
         public AuthController(INotificador notificador,
             SignInManager<IdentityUser> signInManager,
              UserManager<IdentityUser> userManager,
-             IOptions<AppSettings> appSettings) : base(notificador)
+             IOptions<AppSettings> appSettings,
+             IUser user,
+             ILogger<AuthController> logger) : base(notificador,user)
         {
             _signInManager = signInManager;
             _userManager = userManager;
             _appSettings = appSettings.Value;
+            _logger = logger;
         }
 
         [HttpPost("nova-conta")]
@@ -66,7 +71,10 @@ namespace DevIO.Api.Controllers
 
             var result = await _signInManager.PasswordSignInAsync(loginUser.Email, loginUser.Password, false, true);
 
-            if (result.Succeeded) return CustomResponse(await GerarJwt(loginUser.Email));
+            if (result.Succeeded) {
+                _logger.LogInformation("Usuário: " + loginUser.Email + " logado com sucesso");
+                return CustomResponse(await GerarJwt(loginUser.Email));
+            } 
 
             if(result.IsLockedOut)
             {

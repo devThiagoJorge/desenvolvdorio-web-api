@@ -1,4 +1,5 @@
 using DevIO.Api.Configuration;
+using DevIO.Api.Extensions;
 using DevIO.Data.Context;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -28,6 +29,8 @@ namespace DevIO.Api
             });
 
             services.AddAutoMapper(typeof(Startup));
+
+            services.AddLoggingConfiguration();
 
             services.AddControllers();
 
@@ -59,6 +62,10 @@ namespace DevIO.Api
             {
                 app.UseDeveloperExceptionPage();
             }
+            else
+            {
+                app.UseHsts();
+            }
 
             app.UseCors("AllowAll");
 
@@ -74,6 +81,8 @@ namespace DevIO.Api
             {
                 endpoints.MapControllers();
             });
+
+            app.UseLoggingConfiguration();
         }
     }
 }
