@@ -1,6 +1,7 @@
 using DevIO.Api.Configuration;
 using DevIO.Api.Extensions;
 using DevIO.Data.Context;
+using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -34,6 +35,11 @@ namespace DevIO.Api
 
             services.AddControllers();
 
+            services.AddHealthChecks()
+                .AddSqlServer(Configuration.GetConnectionString("DefaultConnection"), name: "Banco SQL");
+
+            services.AddHealthChecksUI().AddSqlServerStorage(Configuration.GetConnectionString("DefaultConnection"));
+
             services.Configure<ApiBehaviorOptions>(opt =>
             {
                 opt.SuppressModelStateInvalidFilter = true;
@@ -50,6 +56,19 @@ namespace DevIO.Api
             });
 
             services.AddIdentityConfiguration(Configuration);
+
+            services.AddApiVersioning(opt => {
+                opt.AssumeDefaultVersionWhenUnspecified = true;
+                opt.DefaultApiVersion = new ApiVersion(1, 0);
+                opt.ReportApiVersions = true;
+            });
+
+            services.AddVersionedApiExplorer(opt =>
+            {
+                opt.GroupNameFormat = "'v'VVV";
+                opt.SubstituteApiVersionInUrl = true;
+            });
+
             services.AddJWTConfiguration(Configuration);
 
             services.ResolveDepencencies();
@@ -82,7 +101,22 @@ namespace DevIO.Api
                 endpoints.MapControllers();
             });
 
+           
             app.UseLoggingConfiguration();
+
+            app.UseHealthChecks("/api/hc", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions() { 
+                Predicate = _ => true, 
+                ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+            });
+
+            app.UseHealthChecksUI(opt =>
+            {
+                opt.UIPath = "/api/hc-ui";
+                opt.ResourcesPath = $"{opt.UIPath}/resources";
+                opt.UseRelativeApiPath = false;
+                opt.UseRelativeResourcesPath = false;
+                opt.UseRelativeWebhookPath = false;
+            });
         }
     }
 }
